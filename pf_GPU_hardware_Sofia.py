@@ -45,7 +45,7 @@ Neff = np.zeros(50)
 Xcorr = np.zeros((2, 50))
 
 # Particle filter loop
-# @njit(parallel=True)
+#@njit(parallel=True)
 for k in range(50):
     m = np.abs(dem_complete['Z'] - np.mean(np.abs(dem_complete['Z'] - h_db[k])))
     row, col = np.unravel_index(np.argmin(m), m.shape)
