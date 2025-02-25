@@ -5,6 +5,7 @@ from scipy.stats import norm
 import time
 #import cuda
 
+import cupy as cp
 
 # Load datasets
 measurements = loadmat('D:\PeerJ GPU Paper Python Code\Hardware-Implementation-TAN-PF\Measurements.mat')
@@ -15,8 +16,11 @@ proc_noise = loadmat('Hardware-Implementation-TAN-PF/ProcNoise2.mat')
 
 # Extract required data
 h_baro = measurements['h_baro'].flatten()
+#h_baro = cp.asarray(h_baro)
 h_radar = measurements['h_radar'].flatten()
+#h_radar = cp.asarray(h_radar)
 h_db = h_baro[699:750] - h_radar[699:750]
+#h_db = cp.asarray(h_db)
 
 print(type(measurements))
 print(type(dem_heights))
@@ -30,15 +34,23 @@ print(type(h_db))
 # Initialize variables
 N = 6000
 particles = np.random.randn(2, N)
+particles = cp.asarray(particles)
 Pk = np.array([[1e-9, 1e-8], [1e-6, 2e-9]])
+Pk = cp.asarray(Pk)
 Qk = np.array([[0.01, 0], [0, 0.01]])
+Qk = cp.asarray(Qk)
 Rk = np.array([[4, 0], [0, 1]])
+Rk = cp.asarray(Rk)
 c = [Pk.copy() for _ in range(N)]
 
 Lat_tercom = np.zeros(50)
+Lat_tercom = cp.asarray(Lat_tercom)
 Long_tercom = np.zeros(50)
+Long_tercom = cp.asarray(Long_tercom)
 Neff = np.zeros(50)
+Neff = cp.asarray(Neff)
 Xcorr = np.zeros((2, 50))
+Xcorr = cp.asarray(Xcorr)
 
 # Convert to ndarrays
 dem_hgts= dem_heights['Z']
@@ -56,11 +68,13 @@ print(dem_comp)
 
 #print(data_v4)
 Data = data_v4['DataV4']
+Data = cp.asarray(Data)
 print(type(Data))
 print(Data.shape)
 
 #print(proc_noise)
 pr_noise = proc_noise['P2']
+pr_noise = cp.asarray(pr_noise)
 print(type(pr_noise))
 print(pr_noise.shape)
 
@@ -75,10 +89,14 @@ import numpy as np
 def particle_filter(dem_complete_Z, dem_complete_M, h_db, proc_noise_P2, particles, c, Qk, Rk, data_v4, N):
     # Initialize output arrays
     Lat_tercom = np.zeros(50)
+    Lat_tercom = cp.asarray(Lat_tercom)
     Long_tercom = np.zeros(50)
+    Long_tercom = cp.asarray(Long_tercom)
     Neff = np.zeros(50)
+    Neff = cp.asarray(Neff)
     Xcorr = np.zeros((2, 50))
-
+    Xcorr = cp.asarray(Xcorr)
+    #dem_complete_Z = cp.asarray(dem_complete_Z)
     num_rows, num_cols = dem_complete_Z.shape  # Shape of the 2D array
 
     for k in prange(50):
@@ -97,64 +115,64 @@ def particle_filter(dem_complete_Z, dem_complete_M, h_db, proc_noise_P2, particl
         col = idx % num_cols  # Convert to column index
 
         pos = dem_complete_M[row, col].flatten()
-        Lat_tercom[k] = pos[0]
-        Long_tercom[k] = pos[1]
-        z = np.array([Lat_tercom[k], Long_tercom[k]])
+        Lat_tercom[k] = cp.asarray(pos[0])
+        Long_tercom[k] = cp.asarray(pos[1])
+        z = cp.array([Lat_tercom[k], Long_tercom[k]])
 
         # Particle filter loop
         for i in range(N):
             # Prediction step
             st = time.time()
             Xpred = particles[:, i]
-            Wk = proc_noise_P2[k].flatten()[0] * np.random.randn(2)
-            F = np.eye(2)
+            Wk = proc_noise_P2[k].flatten()[0] * cp.random.randn(2)
+            F = cp.eye(2)
             Xpred = F @ Xpred + Wk
 
             Pk = c[i]
             Pk = F @ Pk @ F.T + Qk
 
             # Measurement update
-            H = np.eye(2)
+            H = cp.eye(2)
             I = z - H @ Xpred
             S = H @ Pk @ H.T + Rk
-            K = Pk @ H.T @ np.linalg.inv(S)
+            K = Pk @ H.T @ cp.linalg.inv(S)
 
             Xupdt = Xpred + K @ I
-            Pk = (np.eye(2) - K @ H) @ Pk
+            Pk = (cp.eye(2) - K @ H) @ Pk
 
             c[i] = Pk
             particles[:, i] = Xupdt
 
         # Resampling
         if k == 0:
-            dist = np.sqrt((particles[0, :] - z[0])**2 + (particles[1, :] - z[1])**2)
+            dist = cp.sqrt((particles[0, :] - z[0])**2 + (particles[1, :] - z[1])**2)
             dist[dist == 0] = 1e-6  # Avoid division by zero
             w = 1 / dist
-            w /= np.sum(w)
+            w /= cp.sum(w)
 
-        Neff[k] = 1 / np.sum(w**2)
+        Neff[k] = 1 / cp.sum(w**2)
         if Neff[k] < 300:
-            cdf = np.cumsum(w)
+            cdf = cp.cumsum(w)
             new_particles = np.zeros_like(particles)
             for j in range(N):
-                uj = np.random.uniform(0, 1 / N) + j / N
-                idx = np.searchsorted(cdf, uj)
+                uj = cp.random.uniform(0, 1 / N) + j / N
+                idx = cp.searchsorted(cdf, uj)
                 new_particles[:, j] = particles[:, idx]
             particles = new_particles
-            w = np.ones(N) / N
+            w = cp.ones(N) / N
 
         # Compute corrected position
-        Xcorr[:, k] = np.sum(particles * w, axis=1)
+        Xcorr[:, k] = cp.sum(particles * w, axis=1)
         et = time.time()
         print(et-st)
     # Calculate RMSE
     xgps = data_v4[699:750, 7].flatten()
     ygps = data_v4[699:750, 8].flatten()
 
-    rmse_x = np.sqrt(np.mean((ygps[:50] - Lat_tercom)**2))
-    rmse_y = np.sqrt(np.mean((xgps[:50] - Long_tercom)**2))
-    rmse_xpf = np.sqrt(np.mean((ygps[:50] - Xcorr[0, :50])**2))
-    rmse_ypf = np.sqrt(np.mean((xgps[:50] - Xcorr[1, :50])**2))
+    rmse_x = cp.sqrt(cp.mean((ygps[:50] - Lat_tercom)**2))
+    rmse_y = cp.sqrt(np.mean((xgps[:50] - Long_tercom)**2))
+    rmse_xpf =cp.sqrt(cp.mean((ygps[:50] - Xcorr[0, :50])**2))
+    rmse_ypf = cp.sqrt(cp.mean((xgps[:50] - Xcorr[1, :50])**2))
 
     return rmse_x, rmse_y, rmse_xpf, rmse_ypf
 
@@ -162,10 +180,11 @@ import numpy as np
 import time
 
 # Example input data
-np.random.seed(42)  # For reproducibility
+cp.random.seed(42)  # For reproducibility
 
 # Digital Elevation Model (DEM) data
 dem_complete_Z = dem_h  # Random 2D elevation data
+#dem_complete_Z = cp.asarray(dem_complete_Z)
 dem_complete_M = dem_comp  # Lat/Lon coordinate map corresponding to DEM
 
 # Reference database and process noise
@@ -174,15 +193,16 @@ proc_noise_P2 = pr_noise  # Process noise values for each step
 
 # Particles and covariance matrices
 N = 1000  # Number of particles
-particles = np.random.rand(2, N)  # Initial particle states (2D positions)
-c = np.array([np.eye(2) for _ in range(N)])  # Covariance matrices for each particle
+particles = cp.random.rand(2, N)  # Initial particle states (2D positions)
+c = cp.array([cp.eye(2) for _ in range(N)])  # Covariance matrices for each particle
 
 # Noise covariances
-Qk = np.eye(2) * 0.01  # Process noise covariance
-Rk = np.eye(2) * 0.05  # Measurement noise covariance
+Qk = cp.eye(2) * 0.01  # Process noise covariance
+Rk = cp.eye(2) * 0.05  # Measurement noise covariance
 
 # Simulated GPS data
 data_v4 = Data[:,1:10]  # Random data with at least 9 columns (x/y GPS in cols 7/8)
+data_v4 = cp.asarray(data_v4)
 
 # Run the particle filter
 #from particle_filter_module import particle_filter  # Assuming you've saved the function in a module
