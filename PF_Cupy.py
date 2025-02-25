@@ -1,18 +1,29 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from scipy.io import loadmat
+#import matplotlib.pyplot as plt
+#from scipy.io import loadmat
+import scipy as sc
+from scipy import io
 from scipy.stats import norm
 import time
 #import cuda
 
 import cupy as cp
 
+#import cupy as cp
+#x = cp.array([1, 2, 3])
+#print(x)
+
 # Load datasets
-measurements = loadmat('D:\PeerJ GPU Paper Python Code\Hardware-Implementation-TAN-PF\Measurements.mat')
-dem_heights = loadmat('D:\PeerJ GPU Paper Python Code\Hardware-Implementation-TAN-PF\DEM_heights.mat')
-dem_complete = loadmat('D:\PeerJ GPU Paper Python Code\Hardware-Implementation-TAN-PF\DEM_Complete.mat')
-data_v4 = loadmat('D:\PeerJ GPU Paper Python Code\Hardware-Implementation-TAN-PF\DataV4.mat')
-proc_noise = loadmat('Hardware-Implementation-TAN-PF/ProcNoise2.mat')
+#measurements = loadmat('/home/oem/Hardware-Implementation-TAN-PF/Measurements.mat')
+measurements = sc.io.loadmat('/home/oem/Hardware-Implementation-TAN-PF/Measurements.mat')
+#dem_heights = loadmat('/home/oem/Hardware-Implementation-TAN-PF/DEM_heights.mat')
+dem_heights = sc.io.loadmat('/home/oem/Hardware-Implementation-TAN-PF/DEM_heights.mat')
+#dem_complete = loadmat('/home/oem/Hardware-Implementation-TAN-PF/DEM_Complete.mat')
+dem_complete = sc.io.loadmat('/home/oem/Hardware-Implementation-TAN-PF/DEM_Complete.mat')
+#data_v4 = loadmat('/home/oem/Hardware-Implementation-TAN-PF/DataV4.mat')
+data_v4 = sc.io.loadmat('/home/oem/Hardware-Implementation-TAN-PF/DataV4.mat')
+#proc_noise = loadmat('/home/oem/Hardware-Implementation-TAN-PF/ProcNoise2.mat')
+proc_noise = sc.io.loadmat('/home/oem/Hardware-Implementation-TAN-PF/ProcNoise2.mat')
 
 # Extract required data
 h_baro = measurements['h_baro'].flatten()
