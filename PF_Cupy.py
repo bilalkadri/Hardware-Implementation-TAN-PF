@@ -15,15 +15,15 @@ import cupy as cp
 
 # Load datasets
 #measurements = loadmat('/home/oem/Hardware-Implementation-TAN-PF/Measurements.mat')
-measurements = sc.io.loadmat('/home/oem/Hardware-Implementation-TAN-PF/Measurements.mat')
+measurements = sc.io.loadmat('Measurements.mat')
 #dem_heights = loadmat('/home/oem/Hardware-Implementation-TAN-PF/DEM_heights.mat')
-dem_heights = sc.io.loadmat('/home/oem/Hardware-Implementation-TAN-PF/DEM_heights.mat')
+dem_heights = sc.io.loadmat('DEM_heights.mat')
 #dem_complete = loadmat('/home/oem/Hardware-Implementation-TAN-PF/DEM_Complete.mat')
-dem_complete = sc.io.loadmat('/home/oem/Hardware-Implementation-TAN-PF/DEM_Complete.mat')
+dem_complete = sc.io.loadmat('DEM_Complete.mat')
 #data_v4 = loadmat('/home/oem/Hardware-Implementation-TAN-PF/DataV4.mat')
-data_v4 = sc.io.loadmat('/home/oem/Hardware-Implementation-TAN-PF/DataV4.mat')
+data_v4 = sc.io.loadmat('DataV4.mat')
 #proc_noise = loadmat('/home/oem/Hardware-Implementation-TAN-PF/ProcNoise2.mat')
-proc_noise = sc.io.loadmat('/home/oem/Hardware-Implementation-TAN-PF/ProcNoise2.mat')
+proc_noise = sc.io.loadmat('ProcNoise2.mat')
 
 # Extract required data
 h_baro = measurements['h_baro'].flatten()
