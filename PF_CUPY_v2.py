@@ -183,8 +183,8 @@ def particle_filter(dem_complete_Z, dem_complete_M, h_db, proc_noise_P2, particl
         et = time.time()
         t = et-st
         results.append(t)
-        file.write(f"The execution time per data point is {t}\n")
-        print(et-st)
+        #file.write(f"The execution time per data point is {t}\n")
+        #print(et-st)
     # Calculate RMSE
     xgps = data_v4[699:750, 7].flatten()
     ygps = data_v4[699:750, 8].flatten()
@@ -193,8 +193,9 @@ def particle_filter(dem_complete_Z, dem_complete_M, h_db, proc_noise_P2, particl
     rmse_y = cp.sqrt(np.mean((xgps[:50] - Long_tercom)**2))
     rmse_xpf =cp.sqrt(cp.mean((ygps[:50] - Xcorr[0, :50])**2))
     rmse_ypf = cp.sqrt(cp.mean((xgps[:50] - Xcorr[1, :50])**2))
-    
-    return rmse_x, rmse_y, rmse_xpf, rmse_ypf
+    Xcorr_Lat = Xcorr[0, :50]
+    Xcorr_Lon = Xcorr[1,:50]
+    return rmse_x, rmse_y, rmse_xpf, rmse_ypf,results,xgps,ygps,Xcorr_Lat,Xcorr_Lon
 
 import numpy as np
 import time
@@ -213,30 +214,54 @@ proc_noise_P2 = pr_noise  # Process noise values for each step
 
 # Particles and covariance matrices
 N = 1000  # Number of particles
-particles = cp.random.rand(2, N)  # Initial particle states (2D positions)
-c = cp.array([cp.eye(2) for _ in range(N)])  # Covariance matrices for each particle
+result2 = []
+result3 = []
+result4 = []
+N = [1000,2000,3000,4000,5000]
+for i in range(len(N)):
+ particles = cp.random.rand(2, N[i])  # Initial particle states (2D positions)
+ c = cp.array([cp.eye(2) for _ in range(N[i])])  # Covariance matrices for each particle
 
 # Noise covariances
-Qk = cp.eye(2) * 0.01  # Process noise covariance
-Rk = cp.eye(2) * 0.05  # Measurement noise covariance
+ Qk = cp.eye(2) * 0.01  # Process noise covariance
+ Rk = cp.eye(2) * 0.05  # Measurement noise covariance
 
 # Simulated GPS data
-data_v4 = Data[:,1:10]  # Random data with at least 9 columns (x/y GPS in cols 7/8)
-data_v4 = cp.asarray(data_v4)
+ data_v4 = Data[:,1:10]  # Random data with at least 9 columns (x/y GPS in cols 7/8)
+ data_v4 = cp.asarray(data_v4)
 
 # Run the particle filter
 #from particle_filter_module import particle_filter  # Assuming you've saved the function in a module
-st = time.time()
+#N = [1000,2000]
+ st = time.time()
 
-with open(filename, "w") as file:
- rmse_x, rmse_y, rmse_xpf, rmse_ypf = particle_filter(
+#with open(results.txt, "w") as file:
+ rmse_x, rmse_y, rmse_xpf, rmse_ypf,results,xgps,ygps,Xcorr_Lat,Xcorr_Lon= particle_filter(
 dem_complete_Z, dem_complete_M, h_db_2, proc_noise_P2,
-particles, c, Qk, Rk, data_v4, N
+particles, c, Qk, Rk, data_v4, N[i]
 )
-et = time.time()
+ et = time.time()
+ result2.append(et-st)
+ result3.append(rmse_xpf)
+ result4.append(rmse_ypf)
 # Display results
 print(f"RMSE (x): {rmse_x}")
 print(f"RMSE (y): {rmse_y}")
 print(f"RMSE PF (x): {rmse_xpf}")
 print(f"RMSE PF (y): {rmse_ypf}")
 print(et-st)
+N = [1000,2000,300,4000,5000,6000,7000,8000]
+with open("resultspf.txt", "w") as file:
+ file.write(f"The execution time per data point is: {results}\n") 
+ file.write(f"The values of particle number are taken from {N}\n") 
+ #file.write(f"The corresponding execution time is {et-st}\n") 
+ file.write(f"The corresponding execution time is {result2}\n") 
+ file.write(f"RMSE (x): {result3}\n")
+ file.write(f"RMSE (y): {result4}\n")
+ file.write(f"Latitude gps is: {ygps}\n")
+ file.write(f"Longitude gps is: {xgps}\n")
+ file.write(f"Predicted Latitude is: {Xcorr_Lat}\n")
+ file.write(f"Predicted Longitude is: {Xcorr_Lon}\n")
+ #file.write(f"The rmse Longitude is: {Xcorr_Lon}\n")
+ #file.write(f"The rmse Latitude is: {Xcorr_Lon}\n")
+
