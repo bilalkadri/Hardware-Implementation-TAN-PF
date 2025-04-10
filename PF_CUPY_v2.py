@@ -133,6 +133,7 @@ def particle_filter(dem_complete_Z, dem_complete_M, h_db, proc_noise_P2, particl
 
         pos = dem_complete_M[row, col].flatten()
         Lat_tercom[k] = cp.asarray(pos[0])
+        #Long_tercom[k] = cp.asarray(pos[1])*1.33
         Long_tercom[k] = cp.asarray(pos[1])
         z = cp.array([Lat_tercom[k], Long_tercom[k]])
 
@@ -187,7 +188,7 @@ def particle_filter(dem_complete_Z, dem_complete_M, h_db, proc_noise_P2, particl
         #print(et-st)
     # Calculate RMSE
     xgps = data_v4[699:750, 7].flatten()
-    ygps = data_v4[699:750, 8].flatten()
+    ygps = data_v4[699:750, 6].flatten()
 
     rmse_x = cp.sqrt(cp.mean((xgps[:50] - Lat_tercom)**2))
     rmse_y = cp.sqrt(cp.mean((ygps[:50] - Long_tercom)**2))
@@ -220,16 +221,18 @@ result4 = []
 N = [1000,2000,3000,4000,5000]
 for i in range(len(N)):
  particles = cp.random.rand(2, N[i])  # Initial particle states (2D positions)
+ particles[1]=particles[1]*24
  c = cp.array([cp.eye(2) for _ in range(N[i])])  # Covariance matrices for each particle
 
 # Noise covariances
  Qk = cp.eye(2) * 0.01  # Process noise covariance
  Rk = cp.eye(2) * 0.05  # Measurement noise covariance
+ Rk = cp.array([[0, 0.0005], [0, 0.0000004]])
 
 # Simulated GPS data
  data_v4 = Data[:,1:10]  # Random data with at least 9 columns (x/y GPS in cols 7/8)
  data_v4 = cp.asarray(data_v4)
-
+ print(data_v4[:,8]) #6.7,8
 # Run the particle filter
 #from particle_filter_module import particle_filter  # Assuming you've saved the function in a module
 #N = [1000,2000]
@@ -250,6 +253,7 @@ print(f"RMSE (y): {rmse_y}")
 print(f"RMSE PF (x): {rmse_xpf}")
 print(f"RMSE PF (y): {rmse_ypf}")
 print(et-st)
+print(ygps)
 N = [1000,2000,3000,4000,5000,6000,7000,8000]
 with open("resultspf.txt", "w") as file:
  file.write(f"The execution time per data point is: {results}\n") 
@@ -262,6 +266,8 @@ with open("resultspf.txt", "w") as file:
  file.write(f"Longitude gps is: {ygps}\n")
  file.write(f"Predicted Latitude is: {Xcorr_Lat}\n")
  file.write(f"Predicted Longitude is: {Xcorr_Lon}\n")
+ #file.write(f"The data is: {data_v4}\n")
  #file.write(f"The rmse Longitude is: {Xcorr_Lon}\n")
  #file.write(f"The rmse Latitude is: {Xcorr_Lon}\n")
+
 

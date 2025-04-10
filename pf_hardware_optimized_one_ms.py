@@ -108,6 +108,9 @@ def particle_filter(dem_complete_Z, dem_complete_M, h_db, proc_noise_P2, particl
             Xpred = particles[:, i]
             Wk = proc_noise_P2[k].flatten()[0] * np.random.randn(2)
             F = np.eye(2)
+            F = np.array([[0, 1],
+                   [2,0,
+                   ]])
             Xpred = F @ Xpred + Wk
 
             Pk = c[i]
@@ -156,7 +159,7 @@ def particle_filter(dem_complete_Z, dem_complete_M, h_db, proc_noise_P2, particl
     rmse_xpf = np.sqrt(np.mean((ygps[:50] - Xcorr[0, :50])**2))
     rmse_ypf = np.sqrt(np.mean((xgps[:50] - Xcorr[1, :50])**2))
 
-    return rmse_x, rmse_y, rmse_xpf, rmse_ypf
+    return rmse_x, rmse_y, rmse_xpf, rmse_ypf,z
 
 import numpy as np
 import time
@@ -174,12 +177,17 @@ proc_noise_P2 = pr_noise  # Process noise values for each step
 
 # Particles and covariance matrices
 N = 1000  # Number of particles
-particles = np.random.rand(2, N)  # Initial particle states (2D positions)
+particles = np.random.rand(2, N) # Initial particle states (2D positions)
+particles[1]=particles[1]*60
 c = np.array([np.eye(2) for _ in range(N)])  # Covariance matrices for each particle
 
 # Noise covariances
 Qk = np.eye(2) * 0.01  # Process noise covariance
+Qk= np.array([[0.01, 0 ],
+                   [0,  0.1]])
 Rk = np.eye(2) * 0.05  # Measurement noise covariance
+Rk= np.array([[0.00005, 0 ],
+                   [0,  0.00005]])
 
 # Simulated GPS data
 data_v4 = Data[:,1:10]  # Random data with at least 9 columns (x/y GPS in cols 7/8)
@@ -187,7 +195,7 @@ data_v4 = Data[:,1:10]  # Random data with at least 9 columns (x/y GPS in cols 7
 # Run the particle filter
 #from particle_filter_module import particle_filter  # Assuming you've saved the function in a module
 st = time.time()
-rmse_x, rmse_y, rmse_xpf, rmse_ypf = particle_filter(
+rmse_x, rmse_y, rmse_xpf, rmse_ypf, z= particle_filter(
 dem_complete_Z, dem_complete_M, h_db_2, proc_noise_P2,
 particles, c, Qk, Rk, data_v4, N
 )
@@ -198,3 +206,4 @@ print(f"RMSE (y): {rmse_y}")
 print(f"RMSE PF (x): {rmse_xpf}")
 print(f"RMSE PF (y): {rmse_ypf}")
 print(et-st)
+print(z)
