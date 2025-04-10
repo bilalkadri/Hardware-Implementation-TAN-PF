@@ -102,8 +102,8 @@ print("--- %s seconds ---" % (time.time() - start_execution_time))
 xgps = data_v4['DataV4'][699:750, 7].flatten()
 ygps = data_v4['DataV4'][699:750, 8].flatten()
 
-rmse_x = np.sqrt(np.mean((ygps[:50] - Lat_tercom)**2))
-rmse_y = np.sqrt(np.mean((xgps[:50] - Long_tercom)**2))
+rmse_x = np.sqrt(np.mean((xgps[:50] - Lat_tercom)**2))
+rmse_y = np.sqrt(np.mean((ygps[:50] - Long_tercom)**2))
 
 rmse_xpf = np.sqrt(np.mean((ygps[:50] - Xcorr[0, :50])**2))
 rmse_ypf = np.sqrt(np.mean((xgps[:50] - Xcorr[1, :50])**2))

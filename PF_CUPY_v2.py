@@ -164,8 +164,8 @@ def particle_filter(dem_complete_Z, dem_complete_M, h_db, proc_noise_P2, particl
         if k == 0:
             dist = cp.sqrt((particles[0, :] - z[0])**2 + (particles[1, :] - z[1])**2)
             dist[dist == 0] = 1e-6  # Avoid division by zero
-            w = 1 / dist
-            w /= cp.sum(w)
+        w = 1 / dist
+        w /= cp.sum(w)
 
         Neff[k] = 1 / cp.sum(w**2)
         if Neff[k] < 300:
@@ -189,10 +189,10 @@ def particle_filter(dem_complete_Z, dem_complete_M, h_db, proc_noise_P2, particl
     xgps = data_v4[699:750, 7].flatten()
     ygps = data_v4[699:750, 8].flatten()
 
-    rmse_x = cp.sqrt(cp.mean((ygps[:50] - Lat_tercom)**2))
-    rmse_y = cp.sqrt(np.mean((xgps[:50] - Long_tercom)**2))
-    rmse_xpf =cp.sqrt(cp.mean((ygps[:50] - Xcorr[0, :50])**2))
-    rmse_ypf = cp.sqrt(cp.mean((xgps[:50] - Xcorr[1, :50])**2))
+    rmse_x = cp.sqrt(cp.mean((xgps[:50] - Lat_tercom)**2))
+    rmse_y = cp.sqrt(cp.mean((ygps[:50] - Long_tercom)**2))
+    rmse_xpf =cp.sqrt(cp.mean((xgps[:50] - Xcorr[0, :50])**2))
+    rmse_ypf = cp.sqrt(cp.mean((ygps[:50] - Xcorr[1, :50])**2))
     Xcorr_Lat = Xcorr[0, :50]
     Xcorr_Lon = Xcorr[1,:50]
     return rmse_x, rmse_y, rmse_xpf, rmse_ypf,results,xgps,ygps,Xcorr_Lat,Xcorr_Lon
@@ -250,7 +250,7 @@ print(f"RMSE (y): {rmse_y}")
 print(f"RMSE PF (x): {rmse_xpf}")
 print(f"RMSE PF (y): {rmse_ypf}")
 print(et-st)
-N = [1000,2000,300,4000,5000,6000,7000,8000]
+N = [1000,2000,3000,4000,5000,6000,7000,8000]
 with open("resultspf.txt", "w") as file:
  file.write(f"The execution time per data point is: {results}\n") 
  file.write(f"The values of particle number are taken from {N}\n") 
@@ -258,8 +258,8 @@ with open("resultspf.txt", "w") as file:
  file.write(f"The corresponding execution time is {result2}\n") 
  file.write(f"RMSE (x): {result3}\n")
  file.write(f"RMSE (y): {result4}\n")
- file.write(f"Latitude gps is: {ygps}\n")
- file.write(f"Longitude gps is: {xgps}\n")
+ file.write(f"Latitude gps is: {xgps}\n")
+ file.write(f"Longitude gps is: {ygps}\n")
  file.write(f"Predicted Latitude is: {Xcorr_Lat}\n")
  file.write(f"Predicted Longitude is: {Xcorr_Lon}\n")
  #file.write(f"The rmse Longitude is: {Xcorr_Lon}\n")
